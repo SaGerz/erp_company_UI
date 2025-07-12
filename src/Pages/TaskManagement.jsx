@@ -2,11 +2,13 @@ import React from 'react'
 import TaskCard from '../Components/TaskCard/TaskCard';
 import TaskCardAtasan from '../Components/TaskCardAtasan/TaskCardAtasan';
 import ModalEdit from '../Components/ModalEdit/ModalEdit';
-import { useState } from 'react';
+import ModalAdd from '../Components/ModalAdd/ModalAdd';
+import { useState, useEffect } from 'react';
 
 const TaskManagement = () => {
-    const [userRole, setUserRole] = useState("atasan"); // bisa "atasan" atau "karyawan"
+    const [userRole, setUserRole] = useState("karyawan"); // bisa "atasan" atau "karyawan"
     const [selectedTask, setSelectedTask] = useState(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // Untuk Add Modal
 
     const tasks = [
     {
@@ -73,9 +75,19 @@ const TaskManagement = () => {
     },
   ];
 
-  console.log(userRole);
-
   return (
+    <div className="p-3">
+      {userRole === "atasan" && (
+        <div className="flex justify-end mb-2">
+          <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="mb-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer "
+          >
+          ➕ Tambah Task
+          </button>
+        </div>
+      )}
+
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {tasks.map((task) => 
         userRole === "karyawan" ? (
@@ -83,7 +95,7 @@ const TaskManagement = () => {
         ) : 
         (
           <TaskCardAtasan key={task.id} task={task} onEdit={setSelectedTask} />
-        )
+        )  
       )}
 
       {/* Modal muncul hanya kalau user atasan & klik edit */}
@@ -94,6 +106,14 @@ const TaskManagement = () => {
           task={selectedTask}
         />
       )}
+
+      {userRole === "atasan" && isAddModalOpen && (
+        <ModalAdd
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+        />
+      )}
+    </div>
     </div>
   );
 }
