@@ -9,6 +9,7 @@ import WorkingHistory from "./Pages/WorkingHistory";
 import Absensi from "./Pages/Absensi";
 import Login from "./Pages/Auth/Login";
 import Register from "./Pages/Auth/Register";
+import WorkingHistoryDetail from "./Pages/WorkingHistoryDetail";
 
 const App = () => {
   return (
@@ -38,6 +39,7 @@ const App = () => {
                       path="/working-history"
                       element={<WorkingHistory />}
                     />
+                    <Route path="/working-history/:id" element={<WorkingHistoryDetail />} />
                   </Routes>
                 </main>
                 <Footer />
