@@ -1,14 +1,39 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleRegister = (e) => {
+  const navigate = useNavigate();
+
+  const handleRegister = async (e) => {
     e.preventDefault();
     console.log("Register with", { name, email, password });
-    // TODO: Call API register disini
+
+    try {
+      const response = await fetch('http://localhost:5001/api/auth/register', {
+      method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({name, email, password})
+    })
+
+    const data = response.json();
+    if(response.ok)
+    {
+      setTimeout(() => {
+        alert(data.message);
+      }, 300)
+      navigate('/');
+    } else {
+      alert(`Register Failed : ${data.message}`);
+    }
+    } catch (error) {
+      console.log(`Error : `, error);
+    } 
   };
 
   return (

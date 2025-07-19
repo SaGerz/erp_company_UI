@@ -1,13 +1,46 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = (e) => {
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
     e.preventDefault();
     console.log("Login with", { email, password });
-    // TODO: Call API login disini
+
+    try{
+      const response = await fetch('http://localhost:5001/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({email, password})
+      })
+
+      const data = await response.json();
+      console.log(data);
+
+      if(data.token)
+      {
+        console.log('Masuk sini bos')
+        localStorage.setItem('token', data.token);
+        setTimeout(() => {
+          navigate('/');
+        }, 1000);
+      } else {
+        setEmail('');
+        setPassword('');
+      }
+    }
+    catch(error)
+    {
+      console.log('masik error bos')
+      console.log(error);
+      return;
+    }
   };
 
   return (
