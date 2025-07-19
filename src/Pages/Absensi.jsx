@@ -1,32 +1,110 @@
-import React, { useState } from "react";
-
-// Dummy data absensi karyawan
-const dummyAbsensi = {
-  "2025-07-14": [
-    { id: 1, nama: "Budi", jamMasuk: "08:00", jamKeluar: "17:00", keterangan: "Hadir" },
-    { id: 2, nama: "Siti", jamMasuk: "08:15", jamKeluar: "17:05", keterangan: "Hadir" },
-    { id: 3, nama: "Andi", jamMasuk: "-", jamKeluar: "-", keterangan: "Izin" },
-  ],
-  "2025-07-15": [
-    { id: 4, nama: "Budi", jamMasuk: "08:05", jamKeluar: "17:02", keterangan: "Hadir" },
-    { id: 5, nama: "Siti", jamMasuk: "-", jamKeluar: "-", keterangan: "Sakit" },
-    { id: 6, nama: "Andi", jamMasuk: "08:20", jamKeluar: "17:10", keterangan: "Hadir" },
-  ],
-};
+import React, { useEffect, useState } from "react";
+import { formatDate } from "../Utils/dateFormatter";
 
 const Absensi = () => {
-  const [userRole, setUserRole] = useState("atasan"); // "karyawan" or "atasan"
+  const [userRole, setUserRole] = useState("karyawan"); // "karyawan" or "atasan"
   const [selectedDate, setSelectedDate] = useState("2025-07-14"); // Default tanggal
+  const [absensiKaryawan, setAbsensiKaryawan] = useState([]);
 
-  const absensiKaryawan = dummyAbsensi[selectedDate] || [];
+  // const absensiKaryawan = dummyAbsensi[selectedDate] || [];
 
-  const handleCheckIn = () => {
+  const handleCheckIn = async () => {
     console.log("✅ Check In clicked");
+    try {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const {latitude, longitude} = position.coords;
+        const token = localStorage.getItem("token");
+
+        const response = await fetch('http://localhost:5001/api/absensi/masuk', {
+          method: 'POST',
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            lat: latitude,
+            lon: longitude
+          })
+        }) 
+
+        const data = await response.json();
+
+        if(!response.ok)
+        {
+          alert(`Gagal absen ${data.message}`);
+        } else {
+          alert('Absen berhasil')
+          fetchAbsensiUser();
+        }
+      }, (error) => {
+        console.error('Error mendapatkan location', error);
+        alert('Gagal Mengambil Lokasi. Pastikan Lokasi aktif!')
+      })
+    } catch (err)
+    {
+      console.error('Error Absen Masuk:', err);
+      alert('Terjadi error saat absen masuk.');
+    }
   };
 
   const handleCheckOut = () => {
     console.log("❌ Check Out clicked");
+    try {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        console.log("Lokasi user:", latitude, longitude);
+
+        const token = localStorage.getItem('token');
+
+        const response = await fetch('http://localhost:5001/api/absensi/keluar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            lat: latitude,
+            lon: longitude,
+          }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          alert(`❌ Gagal Absen Keluar: ${data.message}`);
+        } else {
+          alert(`✅ ${data.message}`);
+          fetchAbsensiUser();
+        }
+      }, (error) => {
+        console.error('Error mendapatkan lokasi:', error);
+        alert('Gagal mengambil lokasi. Pastikan GPS aktif dan diizinkan.');
+      });
+    } catch (err) {
+      console.error('Error Absen Keluar:', err);
+      alert('Terjadi error saat absen keluar.');
+    }
   };
+  
+  const fetchAbsensiUser = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5001/api/absensi/me', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+      });
+
+      const responseData = await response.json();
+      setAbsensiKaryawan(responseData.data);
+    } catch (error) {
+      console.log(`Error : ${error}`);
+      setAbsensiKaryawan([]);
+    }
+  }
+
+  useEffect(() => {
+    fetchAbsensiUser();
+  }, [selectedDate])
 
   return (
     <div className="p-6">
@@ -52,13 +130,13 @@ const Absensi = () => {
         <div className="flex justify-end mb-4 space-x-2">
           <button
             onClick={handleCheckIn}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
           >
             ✅ Check In
           </button>
           <button
             onClick={handleCheckOut}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
           >
             ❌ Check Out
           </button>
@@ -105,9 +183,11 @@ const Absensi = () => {
                   {userRole === "atasan" && (
                     <td className="px-6 py-4 whitespace-nowrap">{item.nama}</td>
                   )}
-                  <td className="px-6 py-4 whitespace-nowrap">{selectedDate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{item.jamMasuk}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{item.jamKeluar}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{formatDate(item.tanggal)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{item.jam_masuk} WIB</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {item.jam_keluar ? `${item.jam_keluar} WIB` : "-"}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">{item.keterangan}</td>
                 </tr>
               ))
