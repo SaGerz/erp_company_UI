@@ -1,5 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import AbsensiImg from "../assets/absent.png";
+import TaskManagementImg from "../assets/task-management.png";
+import WorkingHistoryImg from "../assets/working-history.png";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -8,19 +11,19 @@ function Dashboard() {
     {
       id: 1,
       title: "Absensi",
-      image: "https://undraw.co/api/illustrations/2c892a9b-1d27-4ff4-b0fa-bb9c29b9e223", // undraw image link
+      image: AbsensiImg, // undraw image link
       route: "/absensi",
     },
     {
       id: 2,
       title: "Task Management",
-      image: "https://undraw.co/api/illustrations/77a5b993-d77f-40d3-b3f1-613d4fd883d1",
+      image: TaskManagementImg,
       route: "/task-management",
     },
     {
       id: 3,
       title: "Working History",
-      image: "https://undraw.co/api/illustrations/0b20b67b-df89-4d6a-bde1-14b00521db2f",
+      image: WorkingHistoryImg,
       route: "/working-history",
     },
   ];
@@ -43,7 +46,7 @@ function Dashboard() {
               <h2 className="text-xl font-semibold mb-2">{card.title}</h2>
               <button
                 onClick={() => navigate(card.route)}
-                className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full"
+                className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 w-full cursor-pointer"
               >
                 Go to {card.title}
               </button>
