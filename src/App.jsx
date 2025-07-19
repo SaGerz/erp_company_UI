@@ -10,6 +10,7 @@ import Absensi from "./Pages/Absensi";
 import Login from "./Pages/Auth/Login";
 import Register from "./Pages/Auth/Register";
 import WorkingHistoryDetail from "./Pages/WorkingHistoryDetail";
+import ProtectedRoute from "./Components/ProtectedRoute/ProtectedRoute";
 
 const App = () => {
   return (
@@ -23,6 +24,8 @@ const App = () => {
         <Route
           path="/*"
           element={
+            <ProtectedRoute>
+
             <div className="flex">
               <Sidebar />
               <div className="flex flex-col flex-1 min-h-screen">
@@ -45,6 +48,7 @@ const App = () => {
                 <Footer />
               </div>
             </div>
+            </ProtectedRoute>
           }
         />
       </Routes>
