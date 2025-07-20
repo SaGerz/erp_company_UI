@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { formatDate } from "../Utils/dateFormatter";
+import { useAuth } from "../Context/AuthContext";
 
 const Absensi = () => {
-  const [userRole, setUserRole] = useState("atasan"); // "karyawan" or "atasan"
+  // const [userRole, setUserRole] = useState("atasan"); // "karyawan" or "atasan"
+  const {userRole, authLoading} = useAuth();
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   ); // Default tanggal
@@ -47,7 +49,7 @@ const Absensi = () => {
     }
   };
 
-  const handleCheckOut = () => {
+  const handleCheckOut = async () => {
     console.log("❌ Check Out clicked");
     try {
       navigator.geolocation.getCurrentPosition(async (position) => {
@@ -124,20 +126,28 @@ const Absensi = () => {
 
 
   useEffect(() => {
+    if (authLoading) return;
+    if(!userRole) return;
+
+    console.log(`user role 1 : ${userRole}`)
     if(userRole === "karyawan")
     {
       fetchAbsensiUser();
     } else if (userRole === "atasan"){
       fetchAbsensiAtasan();
     }
-  }, [selectedDate])
+  }, [selectedDate, userRole, authLoading])
+
+  if(authLoading){
+    return <div>Loading user info...</div>
+  }
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">📅 Absensi</h1>
       </div>
-
+      
       {/* Filter Tanggal (hanya untuk atasan) */}
       {userRole === "atasan" && (
         <div className="flex items-center mb-4 space-x-2">
