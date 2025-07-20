@@ -11,9 +11,11 @@ import Login from "./Pages/Auth/Login";
 import Register from "./Pages/Auth/Register";
 import WorkingHistoryDetail from "./Pages/WorkingHistoryDetail";
 import ProtectedRoute from "./Components/ProtectedRoute/ProtectedRoute";
+import { AuthProvider } from "./Context/AuthContext";
 
 const App = () => {
   return (
+    <AuthProvider>
     <Router>
       <Routes>
         {/* Auth Pages (tanpa sidebar/navbar) */}
@@ -53,6 +55,7 @@ const App = () => {
         />
       </Routes>
     </Router>
+    </AuthProvider>
   );
 };
 

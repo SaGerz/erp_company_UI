@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { decodeJwt } from "../../Utils/auth";
+import { useAuth } from "../../Context/AuthContext";
 
 const Login = () => {
+  const {setUserRole} = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -23,16 +26,19 @@ const Login = () => {
       const data = await response.json();
       console.log(data);
 
-      if(data.token)
+      console.log(response.status);
+      if(!response.ok)
       {
-        console.log('Masuk sini bos')
-        localStorage.setItem('token', data.token);
-        setTimeout(() => {
-          navigate('/');
-        }, 1000);
-      } else {
         setEmail('');
         setPassword('');
+        alert(`Login Failed : ${data.error}`);
+      } else {
+        console.log('Masuk sini bos')
+        localStorage.setItem('token', data.token);
+        
+        const decoded = decodeJwt(data.token);
+        setUserRole(decoded.role_id === 1 ? "atasan" : "karyawan");
+        navigate('/');
       }
     }
     catch(error)
