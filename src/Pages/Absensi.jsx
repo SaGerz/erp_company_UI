@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { formatDate } from "../Utils/dateFormatter";
 
 const Absensi = () => {
-  const [userRole, setUserRole] = useState("karyawan"); // "karyawan" or "atasan"
-  const [selectedDate, setSelectedDate] = useState("2025-07-14"); // Default tanggal
-  const [absensiKaryawan, setAbsensiKaryawan] = useState([]);
-
-  // const absensiKaryawan = dummyAbsensi[selectedDate] || [];
+  const [userRole, setUserRole] = useState("atasan"); // "karyawan" or "atasan"
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  ); // Default tanggal
+  const [absensiData, setAbsensiData] = useState([]);
 
   const handleCheckIn = async () => {
     console.log("✅ Check In clicked");
@@ -95,15 +95,41 @@ const Absensi = () => {
       });
 
       const responseData = await response.json();
-      setAbsensiKaryawan(responseData.data);
+      setAbsensiData(responseData.data);
     } catch (error) {
       console.log(`Error : ${error}`);
-      setAbsensiKaryawan([]);
+      setAbsensiData([]);
     }
   }
 
+  const fetchAbsensiAtasan = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:5001/api/absensi-access/get-absensi?date=${selectedDate}`, {
+          headers: {
+              Authorization: `Bearer ${token}`
+          }
+      });
+      
+      const data = await response.json();
+      if(!response.ok)
+      {
+        alert(`Error : ${data.message}`)
+      }
+      setAbsensiData(data.data || []);
+    } catch (error) {
+      console.log(`error msg : ${error}`)
+    }
+};
+
+
   useEffect(() => {
-    fetchAbsensiUser();
+    if(userRole === "karyawan")
+    {
+      fetchAbsensiUser();
+    } else if (userRole === "atasan"){
+      fetchAbsensiAtasan();
+    }
   }, [selectedDate])
 
   return (
@@ -168,7 +194,7 @@ const Absensi = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {absensiKaryawan.length === 0 ? (
+            {absensiData.length === 0 ? (
               <tr>
                 <td
                   colSpan={userRole === "atasan" ? 5 : 4}
@@ -178,13 +204,15 @@ const Absensi = () => {
                 </td>
               </tr>
             ) : (
-              absensiKaryawan.map((item) => (
+              absensiData.map((item) => (
                 <tr key={item.id}>
                   {userRole === "atasan" && (
-                    <td className="px-6 py-4 whitespace-nowrap">{item.nama}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item.name}</td>
                   )}
                   <td className="px-6 py-4 whitespace-nowrap">{formatDate(item.tanggal)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{item.jam_masuk} WIB</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {item.jam_masuk ? `${item.jam_masuk} WIB` : "-"}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {item.jam_keluar ? `${item.jam_keluar} WIB` : "-"}
                   </td>
