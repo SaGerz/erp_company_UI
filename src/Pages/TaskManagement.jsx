@@ -6,74 +6,38 @@ import ModalAdd from '../Components/ModalAdd/ModalAdd';
 import { useState, useEffect } from 'react';
 
 const TaskManagement = () => {
-    const [userRole, setUserRole] = useState("karyawan"); // bisa "atasan" atau "karyawan"
-    const [selectedTask, setSelectedTask] = useState(null);
+  const [userRole, setUserRole] = useState("atasan"); // bisa "atasan" atau "karyawan"
+  const [selectedTask, setSelectedTask] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false); // Untuk Add Modal
+  const [loading, setLoading] = useState(true);
+  const [tasks, setTasks] = useState("");
 
-    const tasks = [
-    {
-      id: 1,
-      title: "Membuat Laporan Absensi",
-      deskripsi: "Perbaiki semuala laporan absensi agar sesuai dengan apa yang di minta",
-      assignedTo: "tikus",
-      assignedBy: "Pak Budi",
-      deadline: "2025-07-15",
-      status: "On Progress",
-    },
-    {
-      id: 2,
-      title: "Update Data Karyawan",
-      deskripsi: "Update seluruh data karyawan loh ya jangan lupa",
-      assignedTo: "tikus",
-      assignedBy: "Bu Rina",
-      deadline: "2025-07-10",
-      status: "Pending",
-    },
-    {
-      id: 3,
-      title: "Review SOP HR",
-      deskripsi: "Review all data SOP HR per tanggal 12 sampai 21",
-      assignedTo: "tikus",
-      assignedBy: "Pak Ahmad",
-      deadline: "2025-07-20",
-      status: "Selesai",
-    },
-    {
-      id: 4,
-      title: "Fix API loh ya",
-      deskripsi: "Fix api di sini maksudnya bug di bagian service ya!",
-      assignedTo: "tikus",
-      assignedBy: "Pak Dedy",
-      deadline: "2025-07-20",
-      status: "Selesai",
-    },
-    {
-      id: 5,
-      title: "Fix Bug FE loh ya",
-      deskripsi: "Fe bikin bug ga jelas tolong lah ya di fix mas developer ganteng wahay cihuy",
-      assignedTo: "tikus",
-      assignedBy: "Pak Wahyu",
-      deadline: "2025-07-20",
-      status: "Selesai",
-    },
-    {
-      id: 6,
-      title: "Fix Bug FE loh ya",
-      deskripsi: "is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took ",
-      assignedTo: "tikus",
-      assignedBy: "Pak Wahyu",
-      deadline: "2025-07-20",
-      status: "Selesai",
-    },
-    {
-      id: 7,
-      title: "Fix Bug FE loh ya",
-      assignedTo: "tikus",
-      assignedBy: "Pak Wahyu",
-      deadline: "2025-07-20",
-      status: "Selesai",
-    },
-  ];
+  const fetchTasks = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:5001/api/task-management/get-tasks", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Gagal fetch tasks");
+      }
+
+      setTasks(data); // simpan ke state
+    } catch (error) {
+      console.error("❌ Error fetch tasks:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔥 Fetch otomatis saat komponen mount
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
   return (
     <div className="p-3">
@@ -89,7 +53,7 @@ const TaskManagement = () => {
       )}
 
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {tasks.map((task) => 
+      {tasks.data?.map((task) => 
         userRole === "karyawan" ? (
           <TaskCard key={task.id} task={task} />
         ) : 
@@ -104,6 +68,7 @@ const TaskManagement = () => {
           isOpen={!!selectedTask}
           onClose={() => setSelectedTask(null)}
           task={selectedTask}
+          refreshTasks={fetchTasks}
         />
       )}
 
@@ -111,6 +76,7 @@ const TaskManagement = () => {
         <ModalAdd
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
+          refreshTasks = {fetchTasks}
         />
       )}
     </div>

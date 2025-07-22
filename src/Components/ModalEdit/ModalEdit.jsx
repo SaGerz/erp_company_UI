@@ -1,30 +1,76 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { formatDateToInput } from "../../Utils/formatDateToInput";
 
-export default function ModalEdit({ isOpen, onClose, task }) {
-  const [title, setTitle] = useState(task.title);
+export default function ModalEdit({ isOpen, onClose, task, refreshTasks }) {
+  const [title, setTitle] = useState(task.judul);
   const [deskripsi, setDeskripsi] = useState(task.deskripsi);
-  const [assignedTo, setAssignedTo] = useState(task.assignedTo);
-  const [deadline, setDeadline] = useState(task.deadline);
+  const [assignedTo, setAssignedTo] = useState(task.assigned_to);
+   const [deadline, setDeadline] = useState(formatDateToInput(task.deadline));
+  const [userList, setUserList] = useState([]);
 
-  const dummyUsers = [
-    { id: 1, name: "Samuel Genaro" },
-    { id: 2, name: "tikus" },
-    { id: 3, name: "John Smith" },
-    { id: 4, name: "Alice Johnson" },
-  ];
+  const handleSave = async () => {
+    if (!title || !deskripsi || !assignedTo || !deadline) {
+      alert("❌ Semua field wajib diisi!");
+      return;
+    }
 
-  const handleSave = () => {
-    console.log("PATCH API", {
-      id: task.id,
-      title,
-      deskripsi,
-      assignedTo,
-      deadline,
-    });
-    onClose();
+    try {
+      const token = localStorage.getItem("token"); // JWT token
+      const response = await fetch(`http://localhost:5001/api/task-management/update-task/${task.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          judul: title,
+          deskripsi,
+          assigned_to: assignedTo, // kirim ID
+          status: "pending", // misalnya biarkan pending dulu
+          deadline,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(`❌ Gagal update task: ${data.message}`);
+      } else {
+        alert("✅ Task berhasil diupdate");
+        onClose();        // Tutup modal
+        refreshTasks();   // Reload task list
+      }
+    } catch (err) {
+      console.error("Error saat update task:", err);
+      alert("Terjadi error saat update task");
+    }
   };
 
-  if (!isOpen) return null;
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:5001/api/users/karyawan", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+
+      // Exclude user yang udah assigned
+      const users = data.data || [];
+
+      const filteredUsers = users.filter(user => user.id !== task.assigned_to);
+      console.log(filteredUsers);
+      setUserList(filteredUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+    
+  fetchUsers();
+  }, [task.assigned_to]);
+
+  if (!isOpen) return null;   
 
   return (
     <div className="fixed inset-0 z-50 flex justify-center items-center
@@ -47,18 +93,23 @@ export default function ModalEdit({ isOpen, onClose, task }) {
           className="border rounded w-full p-2 mb-4"
         />
 
-        <label className="block mb-2">
-          <select value={assignedTo} 
-          onChange={(e) => setAssignedTo(e.target.value)} 
-          className="border rounded w-full p-2 mb-4" >
-            <option value="">-- select user --</option>
-            {dummyUsers.map((user) => {
-              return (
-                <option key={user.id} value={user.id}>
-                  {user.name}
-                </option>
-              )
-            })}
+        <label className="block mb-2"> Assigned To
+          <select
+            value={assignedTo}
+            onChange={(e) => setAssignedTo(Number(e.target.value))}
+            className="border rounded w-full p-2 mb-4"
+          >
+            {/* Default assigned user */}
+            <option value={task.assigned_to}>
+              {task.assigned_name} (Current)
+            </option>
+
+            {/* Other users */}
+            {userList.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name}
+              </option>
+            ))}
           </select>
         </label>
 

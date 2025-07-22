@@ -1,29 +1,71 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function ModalAdd({ isOpen, onClose }) {
+export default function ModalAdd({ isOpen, onClose, refreshTasks }) {
   const [title, setTitle] = useState("");
   const [deskripsi, setDeskripsi] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
   const [deadline, setDeadline] = useState("");
+  const [userList, setUserList] = useState("");
 
-  const handleSave = () => {
-    console.log("✅ New Task Data:", {
-      title,
-      deskripsi,
-      assignedTo,
-      deadline,
-    });
-    onClose();
+  const handleSave = async () => {
+    if (!title || !deskripsi || !assignedTo || !deadline) {
+      alert("❌ Semua field wajib diisi!");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token"); // ambil token JWT untuk autentikasi
+      const response = await fetch("http://localhost:5001/api/task-management/create-task", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          judul: title,
+          deskripsi,
+          assigned_to: assignedTo, // ini ID user karyawan
+          status: "pending", // default status
+          deadline,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(`❌ Gagal menambahkan task: ${data.message}`);
+      } else {
+        alert("✅ Task berhasil ditambahkan");
+        onClose(); // tutup modal
+        refreshTasks(); // reload task list supaya task baru muncul
+      }
+    } catch (err) {
+      console.error("Error saat tambah task:", err);
+      alert("Terjadi error saat menambahkan task");
+    }
   };
 
-  if (!isOpen) return null;
+  const fetchUsers = async () => {
+    try{
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:5001/api/users/karyawan', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      const data = await response.json();
+      setUserList(data);
+    } catch(err)
+    {
+      console.log(`Gagal Fetch User`);
+    }
+  }
 
-   const dummyUsers = [
-    { id: 1, name: "Samuel Genaro" },
-    { id: 2, name: "tikus" },
-    { id: 3, name: "John Smith" },
-    { id: 4, name: "Alice Johnson" },
-  ];
+  useEffect(() => {
+    fetchUsers();
+  }, [isOpen])
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-center items-center
@@ -55,8 +97,8 @@ export default function ModalAdd({ isOpen, onClose }) {
           className="border rounded w-full p-2 mb-4"
         >
           <option value="">-- Select User --</option>
-          {dummyUsers.map((user) => (
-            <option key={user.id} value={user.name}>
+          {userList.data?.map((user) => (
+            <option key={user.id} value={user.id}>
               {user.name}
             </option>
           ))}
