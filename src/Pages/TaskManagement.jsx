@@ -4,9 +4,10 @@ import TaskCardAtasan from '../Components/TaskCardAtasan/TaskCardAtasan';
 import ModalEdit from '../Components/ModalEdit/ModalEdit';
 import ModalAdd from '../Components/ModalAdd/ModalAdd';
 import { useState, useEffect } from 'react';
+import { useAuth } from '../Context/AuthContext';
 
 const TaskManagement = () => {
-  const [userRole, setUserRole] = useState("atasan"); // bisa "atasan" atau "karyawan"
+  const {userRole, authLoading} = useAuth(); // bisa "atasan" atau "karyawan"
   const [selectedTask, setSelectedTask] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false); // Untuk Add Modal
   const [loading, setLoading] = useState(true);
@@ -34,10 +35,36 @@ const TaskManagement = () => {
     }
   };
 
+  const fetchKaryawanTasks = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch("http://localhost:5001/api/task-access/get-task", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message);
+
+    setTasks(data); // langsung save ke state
+  } catch (error) {
+    console.error("❌ Error fetch tugas karyawan:", error.message);
+  }
+};
+
+
   // 🔥 Fetch otomatis saat komponen mount
-  useEffect(() => {
-    fetchTasks();
-  }, []);
+ useEffect(() => {
+    if (authLoading) return;
+    if(!userRole) return;
+
+    if (userRole === "karyawan") {
+      fetchKaryawanTasks();
+    } else {
+      fetchTasks(); // yang udah lu buat untuk atasan
+    }
+  }, [userRole, authLoading]);
 
   return (
     <div className="p-3">
