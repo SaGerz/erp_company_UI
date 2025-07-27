@@ -1,22 +1,49 @@
 import React, { useState } from "react";
 
-const ModalAdd_WorkingHistory = ({ onClose }) => {
+const ModalAdd_WorkingHistory = ({ onClose, onSucess }) => {
   const [title, setTitle] = useState("");
   const [deskripsi, setDeskripsi] = useState("");
   const [jamMulai, setJamMulai] = useState("");
   const [jamSelesai, setJamSelesai] = useState("");
   const [tanggal, setTanggal] = useState("");
 
-  const handleSave = () => {
-    console.log({
+  const handleSave = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const payload = {
       title,
       deskripsi,
-      jamMulai,
-      jamSelesai,
+      jam_mulai: jamMulai,
+      jam_selesai: jamSelesai,
       tanggal,
+      status: "On Process" // default saat tambah
+    };
+
+    const response = await fetch("http://localhost:5001/api/working-history/create-task", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
     });
-    onClose(); // Tutup modal setelah simpan
-  };
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      alert(`❌ ${result.message}`);
+    } else {
+      alert("✅ Data berhasil ditambahkan");
+      onSucess();
+      onClose();
+      // Optional: trigger reload working history
+    }
+  } catch (error) {
+    console.error("❌ Gagal kirim:", error);
+    alert("Terjadi error saat menambahkan aktivitas");
+  }
+};
+
 
   return (
     <div className="fixed inset-0 z-50 flex justify-center items-center backdrop-blur-sm backdrop-brightness-90">

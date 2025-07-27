@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const ModalEdit_WorkingHistory = ({ isOpen, onClose, data, onSave }) => {
+const ModalEdit_WorkingHistory = ({ isOpen, onClose, data, onSave, onSucess }) => {
   const [title, setTitle] = useState("");
   const [deskripsi, setDeskripsi] = useState("");
   const [jamMulai, setJamMulai] = useState("");
@@ -12,25 +12,44 @@ const ModalEdit_WorkingHistory = ({ isOpen, onClose, data, onSave }) => {
     if (data) {
       setTitle(data.title || "");
       setDeskripsi(data.deskripsi || "");
-      setJamMulai(data.jamMulai || "");
-      setJamSelesai(data.jamSelesai || "");
-      setStatus(data.status || "");
+      setJamMulai(data.jam_mulai || "");
+      setJamSelesai(data.jam_selesai || "");
+      setStatus(data.STATUS || "");
     }
   }, [data]);
 
-  const handleSave = () => {
-    const updatedData = {
-      ...data,
-      title,
-      deskripsi,
-      jamMulai,
-      jamSelesai,
-      status,
-    };
-    console.log("Data updated:", updatedData); // sementara log
-    if (onSave) onSave(updatedData); // Kirim ke parent
-    onClose(); // Tutup modal
+ const handleSave = async () => {
+  const token = localStorage.getItem("token");
+  const updatedData = {
+    title,
+    deskripsi,
+    jam_mulai: jamMulai,
+    jam_selesai: jamSelesai,
+    status,
   };
+
+  try {
+    const res = await fetch(`http://localhost:5001/api/working-history/update-task/${data.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // inject token kalau pakai auth
+      },
+      body: JSON.stringify(updatedData),
+    });
+
+    if (!res.ok) throw new Error("Gagal update");
+
+    const result = await res.json();
+    alert(result.message); // "Task berhasil diupdate..."
+    if (onSave) onSave(updatedData); // Refresh parent data
+    onSucess();
+    onClose();
+
+  } catch (error) {
+    console.error("Update gagal:", error);
+  }
+};
 
   if (!isOpen) return null;
 
@@ -87,9 +106,8 @@ const ModalEdit_WorkingHistory = ({ isOpen, onClose, data, onSave }) => {
           className="border rounded w-full p-2 mb-4"
         >
           <option value="">-- Pilih Status --</option>
-          <option value="Pending">Pending</option>
-          <option value="Selesai">Selesai</option>
-          <option value="Review">Review</option>
+          <option value="Pending">On Process</option>
+          <option value="Done">Done</option>
         </select>
 
         <div className="flex justify-end space-x-2">
