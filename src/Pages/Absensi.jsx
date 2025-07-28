@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { formatDate } from "../Utils/dateFormatter";
 import { useAuth } from "../Context/AuthContext";
+import ModalExportMonthAbsensi from "../Components/ModalExportMonth_Absensi/ModalExportMonthAbsensi";
 
 const Absensi = () => {
   // const [userRole, setUserRole] = useState("atasan"); // "karyawan" or "atasan"
@@ -9,6 +10,7 @@ const Absensi = () => {
     new Date().toISOString().split("T")[0]
   ); // Default tanggal
   const [absensiData, setAbsensiData] = useState([]);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   const handleCheckIn = async () => {
     console.log("✅ Check In clicked");
@@ -122,8 +124,32 @@ const Absensi = () => {
     } catch (error) {
       console.log(`error msg : ${error}`)
     }
-};
+  };
 
+  const handleExportAll = async () => {
+    try {
+      const res = await fetch('http://localhost:5001/api/absensi-access/export-absensi-all', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`, // ambil token
+        },
+      });
+
+      if (!res.ok) throw new Error('Gagal export');
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'absensi_all.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -148,18 +174,47 @@ const Absensi = () => {
         <h1 className="text-2xl font-bold">📅 Absensi</h1>
       </div>
       
-      {/* Filter Tanggal (hanya untuk atasan) */}
       {userRole === "atasan" && (
-        <div className="flex items-center mb-4 space-x-2">
-          <label className="font-medium">Filter Tanggal:</label>
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="border px-2 py-1 rounded"
-          />
+        <div className="flex items-center mb-4 justify-between">
+          {/* Filter Tanggal */}
+          <div className="flex items-center space-x-2">
+            <label className="font-medium">Filter Tanggal:</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="border px-2 py-1 rounded"
+            />
+          </div>
+
+          <div className="flex space-x-2">
+            {/* Tombol Export Bulan */}
+            <button
+              onClick={() => setShowExportModal(true)}
+              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 cursor-pointer"
+            >
+            📤 Export Bulan
+            </button>
+
+            {/* Modal Export */}
+            <ModalExportMonthAbsensi
+              isOpen={showExportModal}
+              onClose={() => setShowExportModal(false)}
+            />
+
+            {/* Tombol Export All */}
+            <button
+              onClick={handleExportAll}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
+            >
+              📤 Export All
+            </button>
+          </div>
         </div>
+        
+        
       )}
+
 
       {/* Tombol Check In / Check Out (hanya karyawan) */}
       {userRole === "karyawan" && (
