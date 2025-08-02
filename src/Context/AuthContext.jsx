@@ -5,6 +5,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [userRole, setUserRole] = useState(""); // "atasan" | "karyawan"
+  const [userName, setUserName] = useState(""); 
   const [authLoading, setAuthLoading] = useState(true);
 
   const checkToken = () => {
@@ -12,9 +13,12 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       const decoded = decodeJwt(token);
       const role = decoded.role_id === 1 ? "atasan" : "karyawan";
+      const name = decoded?.username;
+      setUserName(name);
       setUserRole(role);
       console.log(`✅ User Role dari AuthContext: ${role}`);
     } else {
+      setUserName("");
       setUserRole(""); // token hilang/logged out
     }
     setAuthLoading(false);
@@ -29,7 +33,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ userRole, authLoading, setUserRole }}>
+    <AuthContext.Provider value={{ userName, userRole, authLoading, setUserRole, setUserName }}>
       {children}
     </AuthContext.Provider>
   );

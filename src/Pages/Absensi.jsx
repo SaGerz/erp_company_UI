@@ -11,10 +11,12 @@ const Absensi = () => {
   ); // Default tanggal
   const [absensiData, setAbsensiData] = useState([]);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [loadingType, setLoadingType] = useState(null);
 
   const handleCheckIn = async () => {
     console.log("✅ Check In clicked");
     try {
+      setLoadingType("checkin");
       navigator.geolocation.getCurrentPosition(async (position) => {
         const {latitude, longitude} = position.coords;
         const token = localStorage.getItem("token");
@@ -36,13 +38,16 @@ const Absensi = () => {
         if(!response.ok)
         {
           alert(`Gagal absen ${data.message}`);
+          setLoadingType(null);
         } else {
           alert('Absen berhasil')
           fetchAbsensiUser();
+          setLoadingType(null);
         }
       }, (error) => {
         console.error('Error mendapatkan location', error);
         alert('Gagal Mengambil Lokasi. Pastikan Lokasi aktif!')
+        setLoadingType(null);
       })
     } catch (err)
     {
@@ -54,6 +59,7 @@ const Absensi = () => {
   const handleCheckOut = async () => {
     console.log("❌ Check Out clicked");
     try {
+      setLoadingType("checkout");
       navigator.geolocation.getCurrentPosition(async (position) => {
         const { latitude, longitude } = position.coords;
         console.log("Lokasi user:", latitude, longitude);
@@ -75,13 +81,16 @@ const Absensi = () => {
         const data = await response.json();
         if (!response.ok) {
           alert(`❌ Gagal Absen Keluar: ${data.message}`);
+          setLoadingType(null)
         } else {
           alert(`✅ ${data.message}`);
           fetchAbsensiUser();
+          setLoadingType(null);
         }
       }, (error) => {
         console.error('Error mendapatkan lokasi:', error);
         alert('Gagal mengambil lokasi. Pastikan GPS aktif dan diizinkan.');
+        setLoadingType(null);
       });
     } catch (err) {
       console.error('Error Absen Keluar:', err);
@@ -223,13 +232,27 @@ const Absensi = () => {
             onClick={handleCheckIn}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
           >
-            ✅ Check In
+            {loadingType === "checkin" ? (
+            <div className="flex items-center space-x-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Checking In...</span>
+            </div>
+            ) : 
+             "✅ Check In"
+            }
           </button>
           <button
             onClick={handleCheckOut}
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
           >
-            ❌ Check Out
+            {loadingType === "checkout" ? (
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Checking Out...</span>
+              </div>
+              ) : 
+            "❌ Check Out"
+            }
           </button>
         </div>
       )}

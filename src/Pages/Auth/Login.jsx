@@ -4,7 +4,7 @@ import { decodeJwt } from "../../Utils/auth";
 import { useAuth } from "../../Context/AuthContext";
 
 const Login = () => {
-  const {setUserRole} = useAuth();
+  const {setUserRole, setUserName} = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -38,6 +38,7 @@ const Login = () => {
         
         const decoded = decodeJwt(data.token);
         setUserRole(decoded.role_id === 1 ? "atasan" : "karyawan");
+        setUserName(decoded.username);
         navigate('/');
       }
     }
