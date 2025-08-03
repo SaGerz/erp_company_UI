@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { formatDate } from "../Utils/dateFormatter";
 import { useAuth } from "../Context/AuthContext";
 import ModalExportMonthAbsensi from "../Components/ModalExportMonth_Absensi/ModalExportMonthAbsensi";
+import SuccessAlert from "../Components/Alert/AlertSuccess";
+import FailedAlert from "../Components/Alert/AlertFailed";
 
 const Absensi = () => {
   // const [userRole, setUserRole] = useState("atasan"); // "karyawan" or "atasan"
@@ -37,16 +39,16 @@ const Absensi = () => {
 
         if(!response.ok)
         {
-          alert(`Gagal absen ${data.message}`);
+          FailedAlert(data.message);
           setLoadingType(null);
         } else {
-          alert('Absen berhasil')
+          SuccessAlert(data.message);
           fetchAbsensiUser();
           setLoadingType(null);
         }
       }, (error) => {
         console.error('Error mendapatkan location', error);
-        alert('Gagal Mengambil Lokasi. Pastikan Lokasi aktif!')
+        FailedAlert('Gagal Mengambil Lokasi. Pastikan Lokasi aktif!');
         setLoadingType(null);
       })
     } catch (err)
@@ -62,8 +64,6 @@ const Absensi = () => {
       setLoadingType("checkout");
       navigator.geolocation.getCurrentPosition(async (position) => {
         const { latitude, longitude } = position.coords;
-        console.log("Lokasi user:", latitude, longitude);
-
         const token = localStorage.getItem('token');
 
         const response = await fetch('http://localhost:5001/api/absensi/keluar', {
@@ -80,16 +80,16 @@ const Absensi = () => {
 
         const data = await response.json();
         if (!response.ok) {
-          alert(`❌ Gagal Absen Keluar: ${data.message}`);
+          FailedAlert(data.message);
           setLoadingType(null)
         } else {
-          alert(`✅ ${data.message}`);
+          SuccessAlert(data.message);
           fetchAbsensiUser();
           setLoadingType(null);
         }
       }, (error) => {
         console.error('Error mendapatkan lokasi:', error);
-        alert('Gagal mengambil lokasi. Pastikan GPS aktif dan diizinkan.');
+        FailedAlert('Gagal mengambil lokasi. Pastikan GPS aktif dan diizinkan.');
         setLoadingType(null);
       });
     } catch (err) {
@@ -230,7 +230,10 @@ const Absensi = () => {
         <div className="flex justify-end mb-4 space-x-2">
           <button
             onClick={handleCheckIn}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
+            disabled={loadingType === "checkin"}
+            className={`px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700
+                ${loadingType === "checkin" ? "bg-green-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700 cursor-pointer"}
+            `}
           >
             {loadingType === "checkin" ? (
             <div className="flex items-center space-x-2">
@@ -243,7 +246,10 @@ const Absensi = () => {
           </button>
           <button
             onClick={handleCheckOut}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 cursor-pointer"
+            disabled={loadingType === "checkout"}
+            className={`px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 
+                ${loadingType === "checkout" ? "bg-red-400 cursor-not-allowed opacity-70" : "bg-red-600 hover:bg-red-700 cursor-pointer"}
+            `}
           >
             {loadingType === "checkout" ? (
               <div className="flex items-center space-x-2">
