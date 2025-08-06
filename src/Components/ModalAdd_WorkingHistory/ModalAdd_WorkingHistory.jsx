@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import FailedAlert from "../Alert/AlertFailed";
+import SuccessAlert from "../Alert/AlertSuccess";
 
 const ModalAdd_WorkingHistory = ({ onClose, onSucess }) => {
   const [title, setTitle] = useState("");
@@ -31,9 +33,9 @@ const ModalAdd_WorkingHistory = ({ onClose, onSucess }) => {
     const result = await response.json();
 
     if (!response.ok) {
-      alert(`❌ ${result.message}`);
+      FailedAlert(result.message);
     } else {
-      alert("✅ Data berhasil ditambahkan");
+      SuccessAlert(result.message);
       onSucess();
       onClose();
       // Optional: trigger reload working history
@@ -92,13 +94,13 @@ const ModalAdd_WorkingHistory = ({ onClose, onSucess }) => {
         <div className="flex justify-end space-x-2">
           <button
             onClick={onClose}
-            className="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400"
+            className="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400 cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+            className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 cursor-pointer"
           >
             Save
           </button>

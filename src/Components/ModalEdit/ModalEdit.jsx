@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { formatDateToInput } from "../../Utils/formatDateToInput";
+import FailedAlert from "../Alert/AlertFailed";
+import SuccessAlert from "../Alert/AlertSuccess";
 
 export default function ModalEdit({ isOpen, onClose, task, refreshTasks }) {
   const [title, setTitle] = useState(task.judul);
   const [deskripsi, setDeskripsi] = useState(task.deskripsi);
   const [assignedTo, setAssignedTo] = useState(task.assigned_to);
-   const [deadline, setDeadline] = useState(formatDateToInput(task.deadline));
+  const [deadline, setDeadline] = useState(formatDateToInput(task.deadline));
   const [userList, setUserList] = useState([]);
 
   const handleSave = async () => {
@@ -34,9 +36,9 @@ export default function ModalEdit({ isOpen, onClose, task, refreshTasks }) {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(`❌ Gagal update task: ${data.message}`);
+        FailedAlert(data.message);
       } else {
-        alert("✅ Task berhasil diupdate");
+        SuccessAlert(data.message);
         onClose();        // Tutup modal
         refreshTasks();   // Reload task list
       }

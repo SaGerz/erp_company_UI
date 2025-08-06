@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import FailedAlert from "../Alert/AlertFailed";
+import SuccessAlert from "../Alert/AlertSuccess";
 
 export default function ModalAdd({ isOpen, onClose, refreshTasks }) {
   const [title, setTitle] = useState("");
@@ -33,9 +35,9 @@ export default function ModalAdd({ isOpen, onClose, refreshTasks }) {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(`❌ Gagal menambahkan task: ${data.message}`);
+        FailedAlert(data.message);
       } else {
-        alert("✅ Task berhasil ditambahkan");
+        SuccessAlert(data.message);
         onClose(); // tutup modal
         refreshTasks(); // reload task list supaya task baru muncul
       }
@@ -115,13 +117,13 @@ export default function ModalAdd({ isOpen, onClose, refreshTasks }) {
         <div className="flex justify-end space-x-2">
           <button
             onClick={onClose}
-            className="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400"
+            className="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400 cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700"
+            className="px-3 py-1 rounded bg-green-600 text-white hover:bg-green-700 cursor-pointer"
           >
             Save
           </button>

@@ -65,14 +65,6 @@ function WorkingHistory() {
   fetchData();
 }, [userRole, selectedDate, authLoading]);
 
-  // useEffect(() => {
-  //   fetchWorkingHistory();
-  // }, [selectedDate])
-
-  // useEffect(() => {
-  //   fetchUsersList();
-  // }, [])
-
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">📒 Working History</h1>
@@ -90,7 +82,7 @@ function WorkingHistory() {
             />
             <button
               onClick={() => setIsModalAddOpen(true)}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 cursor-pointer"
             >
               ➕ Tambah Aktivitas
             </button>

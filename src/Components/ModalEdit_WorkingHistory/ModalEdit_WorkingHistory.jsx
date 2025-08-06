@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import SuccessAlert from "../Alert/AlertSuccess";
 
 const ModalEdit_WorkingHistory = ({ isOpen, onClose, data, onSave, onSucess }) => {
   const [title, setTitle] = useState("");
@@ -41,7 +42,7 @@ const ModalEdit_WorkingHistory = ({ isOpen, onClose, data, onSave, onSucess }) =
     if (!res.ok) throw new Error("Gagal update");
 
     const result = await res.json();
-    alert(result.message); // "Task berhasil diupdate..."
+    SuccessAlert(result.message);// "Task berhasil diupdate..."
     if (onSave) onSave(updatedData); // Refresh parent data
     onSucess();
     onClose();
@@ -113,13 +114,13 @@ const ModalEdit_WorkingHistory = ({ isOpen, onClose, data, onSave, onSucess }) =
         <div className="flex justify-end space-x-2">
           <button
             onClick={onClose}
-            className="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400"
+            className="px-3 py-1 rounded bg-gray-300 hover:bg-gray-400 cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+            className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
           >
             Save
           </button>
