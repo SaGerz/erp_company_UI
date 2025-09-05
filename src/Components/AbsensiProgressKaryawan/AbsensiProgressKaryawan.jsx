@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
+import { useAuth } from "../../Context/AuthContext";
 
 const AbsensiProgressKaryawan = () => {
+  const {userRole} = useAuth();
   const token = localStorage.getItem("token");
   const [absensi, setAbsensi] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Ambil data absensi user
   useEffect(() => {
+    if (!token) return;
     const fetchAbsensi = async () => {
       try {
         const response = await fetch("http://localhost:5001/api/absensi/me", {
@@ -25,7 +28,7 @@ const AbsensiProgressKaryawan = () => {
     };
 
     fetchAbsensi();
-  }, [token]);
+  }, [userRole]);
 
   if (loading) return <p>Loading absensi...</p>;
 

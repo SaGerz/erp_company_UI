@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import SuccessAlert from "../Alert/AlertSuccess";
+import FailedAlert from "../Alert/AlertFailed";
 
 const ModalEdit_WorkingHistory = ({ isOpen, onClose, data, onSave, onSucess }) => {
   const [title, setTitle] = useState("");
@@ -38,14 +39,16 @@ const ModalEdit_WorkingHistory = ({ isOpen, onClose, data, onSave, onSucess }) =
       },
       body: JSON.stringify(updatedData),
     });
-
-    if (!res.ok) throw new Error("Gagal update");
-
-    const result = await res.json();
-    SuccessAlert(result.message);// "Task berhasil diupdate..."
-    if (onSave) onSave(updatedData); // Refresh parent data
-    onSucess();
-    onClose();
+        const result = await res.json();
+    if (!res.ok) {
+      FailedAlert(result.message);
+    }
+    else {
+      SuccessAlert(result.message);// "Task berhasil diupdate..."
+      if (onSave) onSave(updatedData); // Refresh parent data
+      onSucess();
+      onClose();
+    }
 
   } catch (error) {
     console.error("Update gagal:", error);
@@ -107,7 +110,7 @@ const ModalEdit_WorkingHistory = ({ isOpen, onClose, data, onSave, onSucess }) =
           className="border rounded w-full p-2 mb-4"
         >
           <option value="">-- Pilih Status --</option>
-          <option value="Pending">On Process</option>
+          <option value="On Process">On Process</option>
           <option value="Done">Done</option>
         </select>
 
