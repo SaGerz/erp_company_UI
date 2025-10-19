@@ -1,3 +1,8 @@
 :root {
   --color-sidebar: #323a49;
 }
+
+.sidebar-active {
+  background-color: #1d4ed8;
+  border-left: 4px solid #60a5fa;
+}
